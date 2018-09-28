@@ -79,7 +79,6 @@ def _format_addr(s):
 
 
 def let_them_know(header, context):
-    print(context)
     email = '%s/email.json' % sys.path[0]
     with open(email, 'r', encoding='utf-8') as f:
         email_info = json.load(f)
