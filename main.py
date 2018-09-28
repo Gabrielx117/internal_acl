@@ -71,11 +71,14 @@ def format(add, remove):
     else:
         context = None
     return context
+
+
 def _format_addr(s):
     name, addr = parseaddr(s)
     return formataddr((Header(name).encode(), addr))
 
-def let_them_know(header,context):
+
+def let_them_know(header, context):
     print(context)
     email = '%s/email.json' % sys.path[0]
     with open(email, 'r', encoding='utf-8') as f:
@@ -96,15 +99,14 @@ def let_them_know(header,context):
     server.quit()
 
 
-
 if __name__ == '__main__':
     GR3 = '220.113.135.52'
     cmd = 'show route receive-protocol bgp 14.197.247.112'
     account = ('xiayu', 'tjgwbn123')
     iplist = list(filter(del_private, get_info(GR3, account, cmd)))
     add, remove = diff(iplist, 'internal.txt')
-    result=format(add,remove)
+    result = format(add, remove)
     if result:
-        let_them_know('内网地址组更新',result)
+        let_them_know('内网地址组更新', result)
     else:
-        print ('meiyou')
+        print('meiyou')
