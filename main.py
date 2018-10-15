@@ -4,6 +4,7 @@ import pickle
 import sys
 import json
 import smtplib
+from netaddr import IPNetwork, cidr_merge, IPSet
 from email import encoders
 from email.header import Header
 from email.mime.text import MIMEText
@@ -35,26 +36,26 @@ def get_info(device, account, cmd):
     return result
 
 
-def diff(now, history):
+def diff(new, history):
 
     try:
         with open(history, 'rb') as i:
-            old = set(pickle.load(i))
+            old = pickle.load(i)
     except:
         IndexError
-        old = set()
+        old = IPSet()
 
     with open(history, 'wb') as i:
-        pickle.dump(now, i)
+        pickle.dump(new, i)
 
-    new = set(now)
-    add = new - old or None  # 新增差量
-    remove = old - new or None
+    add = new - old  # 新增差量
+    remove = old - new
     return (add, remove)
 
 
 def to_str(args):
-    return str('\n'.join(sorted(args)))
+    a = [str(i) for i in args]
+    return str('\n'.join(a))
 
 
 def format(add, remove):
@@ -102,9 +103,11 @@ if __name__ == '__main__':
     GR3 = '220.113.135.52'
     cmd = 'show route receive-protocol bgp 14.197.247.112'
     account = ('xiayu', 'tjgwbn123')
-    iplist = list(filter(del_private, get_info(GR3, account, cmd)))
-    add, remove = diff(iplist, 'internal.txt')
-    result = format(add, remove)
+    rowIP = list(get_info(GR3, account, cmd))
+    ip = cidr_merge(rowIP)
+    pureIP = IPSet(ip) - IPSet(['10.0.0.0/8', '14.0.0.0/8'])
+    add, remove = diff(pureIP, 'internal.txt')
+    result = format(add.iter_cidrs(), remove.iter_cidrs())
     if result:
         let_them_know('内网地址组更新', result)
     else:
